@@ -29,5 +29,6 @@ class Receiver:
             img0 = self.q.get()
             print("Load Image Success")
             self.detect_img = self.yolo.detection(img0)
-            self.width = self.detect_img.shape[0]
-            self.height = self.detect_img.shape[1]
+            self.height = self.detect_img.shape[0]
+            self.width = self.detect_img.shape[1]
+

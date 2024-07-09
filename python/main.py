@@ -7,7 +7,7 @@ model_path = "D:/inspection.onnx"
 if __name__ == '__main__':
     receiver.recv_init(model_path)
     receiver.process()
-    if receiver.detect_img:
+    if receiver.detect_img != []:
         sender.process()
     else :
         receiver.process()
