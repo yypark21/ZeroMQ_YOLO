@@ -12,7 +12,7 @@ class Sender:
         self.recv = py_receiver.Receiver()
 
     def process(self):
-        self.image = cv2.resize(self.recv.detect_img, self.recv.height, self.recv.width, cv2.INTER_CUBIC)
+        # self.image = cv2.resize(self.recv.detect_img, self.recv.height, self.recv.width, cv2.INTER_CUBIC)
         encoded, buffer = cv2.imencode('.jpg', self.image, [cv2.IMWRITE_JPEG_QUALITY, 80])
         data = base64.b64encode(buffer)
         self.send_socket.send_pyobj(data)
