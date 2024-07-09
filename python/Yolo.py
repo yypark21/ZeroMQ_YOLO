@@ -28,6 +28,7 @@ class YoloModel:
         self.sub_session = None
         self.input_name = ''
         self.output_name = []
+        self.detections = []
 
     def init_model(self, main_model_path, sub_model_path):
         self.main_session = ort.InferenceSession(main_model_path, providers=['CUDAExecutionProvider'])
@@ -39,7 +40,8 @@ class YoloModel:
         self.sub_input_name = self.sub_session.get_inputs()[0].name
         self.sub_output_names = [output.name for output in self.sub_session.get_outputs()]
 
-    def preprocess(self, image, session):
+    @staticmethod
+    def preprocess(image, session):
         if image.dtype == np.uint16:
             image = (image / 256).astype(np.uint8)
         if len(image.shape) == 2:
@@ -52,7 +54,8 @@ class YoloModel:
         image = np.expand_dims(image.transpose(2, 0, 1), axis=0) / 255.0
         return image
 
-    def postprocess(self, session, outputs, original_shape, confidence_threshold=0.9):
+    @staticmethod
+    def postprocess(session, outputs, original_shape, confidence_threshold=0.9):
         # Extract results
         results = outputs[0].squeeze()
         orig_height, orig_width = original_shape[:2]
@@ -80,10 +83,11 @@ class YoloModel:
         return detections
 
     def draw_boxes(self, image, detections, threshold=0.9):
-        result_image = image.copy()
-        length = detections.shape[0]
-        for i in range(length):
-            for detection in detections[i]:
+        result_image = (image.copy() / 256).astype(np.uint8)
+        length = len(detections.shape) - 1
+
+        if length == 1:
+            for detection in detections:
                 box = (x1, y1, x2, y2) = (
                     detection[1][0], detection[1][1], detection[1][0] + detection[1][2],
                     detection[1][1] + detection[1][3])
@@ -95,6 +99,20 @@ class YoloModel:
                     label = f"{self.labels[class_idx]}: {score:.2f}"
                     cv2.rectangle(result_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
                     cv2.putText(result_image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        else :
+            for i in range(length):
+                for detection in detections:
+                    box = (x1, y1, x2, y2) = (
+                        detection[1][0], detection[1][1], detection[1][0] + detection[1][2],
+                        detection[1][1] + detection[1][3])
+                    class_idx = detection[2]
+                    score = detection[0]
+                    box = np.array(box)
+                    if score > threshold:
+                        x1, y1, x2, y2 = box.astype(int)
+                        label = f"{self.labels[class_idx]}: {score:.2f}"
+                        cv2.rectangle(result_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
+                        cv2.putText(result_image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
         return result_image
 
@@ -117,8 +135,13 @@ class YoloModel:
         # Add Results
         main_detections = np.asanyarray(main_detections, dtype=object)
         sub_detections = np.asanyarray(sub_detections, dtype=object)
-        detections = np.stack((main_detections, sub_detections), axis=0)
-        result_image = self.draw_boxes(img.copy(), detections)
+        if main_detections.shape[0] == 0:
+            self.detections = sub_detections
+        elif sub_detections.shape[0] == 0:
+            self.detections = main_detections
+        else :
+            self.detections = np.stack((main_detections, sub_detections), axis=0)
+        result_image = self.draw_boxes(img.copy(), self.detections)
         cv2.imwrite("D:/yolotest.tif", result_image)
 
         return result_image

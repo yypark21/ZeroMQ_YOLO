@@ -1,7 +1,6 @@
 import zmq
 import base64, time
 import cv2
-import py_receiver
 
 
 class Sender:
@@ -9,13 +8,18 @@ class Sender:
         self.context = None
         self.send_socket = None
         self.image = []
-        self.recv = py_receiver.Receiver()
+        self.ip = "tcp://localhost:5555"
+
+    def send_init(self, image):
+        self.context = zmq.Context()
+        self.send_socket = self.context.socket(zmq.PUSH)
+        self.send_socket.connect(self.ip)
+        self.image = image
 
     def process(self):
-        # self.image = cv2.resize(self.recv.detect_img, self.recv.height, self.recv.width, cv2.INTER_CUBIC)
         encoded, buffer = cv2.imencode('.jpg', self.image, [cv2.IMWRITE_JPEG_QUALITY, 80])
         data = base64.b64encode(buffer)
-        self.send_socket.send_pyobj(data)
+        self.send_socket.send(data)
         self.refresh()
     def refresh(self):
         self.image = []

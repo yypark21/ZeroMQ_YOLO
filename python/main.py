@@ -9,7 +9,8 @@ sub_model_path = "D:/inspection_sub.onnx"
 if __name__ == '__main__':
     receiver.recv_init(main_model_path, sub_model_path)
     receiver.process()
-    if receiver.detect_img:
+    if receiver.detect_img is not None:
+        sender.send_init(receiver.detect_img)
         sender.process()
     else:
         receiver.process()
