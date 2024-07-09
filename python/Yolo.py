@@ -42,43 +42,63 @@ class YoloModel:
         image = np.expand_dims(image.transpose(2, 0, 1), axis=0) / 255.0
         return image
 
-    def postprocess(self, outputs, original_shape):
-        print("Outputs:", [output.shape for output in outputs])
+    def postprocess(self, outputs, original_shape, confidence_threshold=0.5):
+        # Extract results
+        results = outputs[0].squeeze()  # Assuming the model output is of shape (1, N, 6)
 
-        if len(outputs) == 3:
-            boxes, scores, class_indices = outputs[0], outputs[1], outputs[2]
-        elif len(outputs) == 2:
-            boxes, scores_and_classes = outputs[0], outputs[1]
-            scores = scores_and_classes[:, :, 4]
-            class_indices = scores_and_classes[:, :, 5].astype(int)
-        else:
-            raise ValueError("Unexpected output format from the model")
+        orig_height, orig_width = original_shape[:2]
+        img_height, img_width = self.session.get_inputs()[0].shape[2:]
 
-        height, width = original_shape[:2]
-        boxes[:, [0, 2]] *= width
-        boxes[:, [1, 3]] *= height
-        return boxes, scores, class_indices
-        return boxes, scores, class_indices
+        detections = []
+        num_detections = results.shape[0] // 6
 
-    def draw_boxes(self, image, boxes, scores, class_indices, threshold=0.5):
-        for box, score, class_idx in zip(boxes, scores, class_indices):
+        for result in (results):
+            i = 0
+            right = result[i * 6 + 0]
+            bottom = result[i * 6 + 1]
+            left = result[i * 6 + 2]
+            top = result[i * 6 + 3]
+            confidence = result[i * 6 + 4]
+            class_id = int(result[i * 6 + 5])
+
+            if confidence >= confidence_threshold:
+                x = int(left * orig_width / img_width)
+                y = int(top * orig_height / img_height)
+                width = int((right -left) * orig_width / img_width)
+                height = int((bottom - top) * orig_height / img_height)
+
+                detections.append((confidence, (x, y, width, height), class_id))
+            i +=1
+        return detections
+    def draw_boxes(self, image, detections, threshold=0.9):
+        global rt_img
+        for detection in detections :
+            box = (x1,y1,x2,y2) = (detection[1][0],detection[1][1], detection[1][0] + detection[1][2], detection[1][2] + detection[1][3])
+            class_idx = detection[2]
+            score = detection[0]
+            box = np.array(box)
+            rt_img = (image.copy() / 256).astype(np.uint8)
+            rt_img = cv2.cvtColor(rt_img, cv2.COLOR_GRAY2RGB)
+
             if score > threshold:
                 x1, y1, x2, y2 = box.astype(int)
                 label = f"{self.labels[class_idx]}: {score:.2f}"
-                cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
-                cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-        return image
+                cv2.rectangle(rt_img, (x1, y1), (x2, y2), (255, 0, 0), 1)
+                cv2.putText(rt_img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        return image , rt_img
 
     def detection(self, img):
         input_data = self.preprocess(img)
         outputs = self.session.run(self.output_names, {self.input_name: input_data})
-        boxes, scores, class_indices = self.postprocess(outputs, img.shape)
-        result_image = self.draw_boxes(img.copy(), boxes, scores, class_indices)
+        detections = self.postprocess(outputs, img.shape)
+        raw_image,result_image = self.draw_boxes(img.copy(), detections)
+        cv2.imwrite("D:/yoloraw.tif", raw_image)
+        cv2.imwrite("D:/yolotest.tif", result_image)
+
         return result_image
     def pyshine_image_queue(self, client_socket):
         frame = [0]
         q = queue.Queue(maxsize=10)
-
         def getAudio():
             while True:
                 try:
@@ -90,6 +110,7 @@ class YoloModel:
                     q.put(image)
                 except:
                     pass
+
         thread = threading.Thread(target=getAudio, args=())
         thread.start()
         return q
