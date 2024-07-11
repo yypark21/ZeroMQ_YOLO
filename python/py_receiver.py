@@ -1,7 +1,6 @@
 import zmq
 import Yolo
-import pyshine as ps
-import cv2
+import time
 
 
 class Receiver:
@@ -28,7 +27,8 @@ class Receiver:
             img0 = []
             img0 = self.q.get()
             print("Load Image Success")
+            start_time = time.time()
             self.detect_img = self.yolo.multi_detection(img0)
+            print("Tact : {}".format(time.time() - start_time))
             self.height = self.detect_img.shape[0]
             self.width = self.detect_img.shape[1]
-

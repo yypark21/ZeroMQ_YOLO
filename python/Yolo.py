@@ -1,18 +1,7 @@
 import cv2
-import onnx
 import onnxruntime as ort
-import zmq
-import base64
 import numpy as np, time
-import pyshine as ps
-from multiprocessing import Process
 import torch, random, threading, queue
-import matplotlib.pyplot as plt
-import os
-
-import torch.nn as nn
-import torch.nn.init as init
-from torch import nn
 
 
 class YoloModel:
@@ -63,7 +52,8 @@ class YoloModel:
 
         detections = []
         num_detections = results.shape[0] // 6
-
+        idx = np.where(results[:, 4] > confidence_threshold)
+        results = results[idx]
         for result in results:
             i = 0
             cx = result[i * 6 + 0]
@@ -72,13 +62,11 @@ class YoloModel:
             h = result[i * 6 + 3]
             confidence = result[i * 6 + 4]
             class_id = int(result[i * 6 + 5])
-
-            if confidence >= confidence_threshold:
-                width = int((w) * orig_width / img_width)
-                height = int((h) * orig_height / img_height)
-                x = int((cx - w / 2) * orig_width / img_width)
-                y = int((cy - h / 2) * orig_height / img_height)
-                detections.append((confidence, (x, y, width, height), class_id))
+            width = int((w) * orig_width / img_width)
+            height = int((h) * orig_height / img_height)
+            x = int((cx - w / 2) * orig_width / img_width)
+            y = int((cy - h / 2) * orig_height / img_height)
+            detections.append((confidence, (x, y, width, height), class_id))
             i += 1
         return detections
 
@@ -99,7 +87,7 @@ class YoloModel:
                     label = f"{self.labels[class_idx]}: {score:.2f}"
                     cv2.rectangle(result_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
                     cv2.putText(result_image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-        else :
+        else:
             for i in range(length):
                 for detection in detections:
                     box = (x1, y1, x2, y2) = (
@@ -116,7 +104,8 @@ class YoloModel:
 
         return result_image
 
-    def inference(self, session, output_names, input_name, input_data):
+    @staticmethod
+    def inference(session, output_names, input_name, input_data):
         return session.run(output_names, {input_name: input_data})
 
     def detection(self, img, session, output_names, input_name):
@@ -127,10 +116,13 @@ class YoloModel:
 
     def multi_detection(self, img):
         # Main Inference
+        st = time.time()
         main_detections = self.detection(img, self.main_session, self.main_output_names, self.main_input_name)
-
+        print("main detect Tact : {}".format(time.time() - st))
         # Sub Inference
+        st = time.time()
         sub_detections = self.detection(img, self.sub_session, self.sub_output_names, self.sub_input_name)
+        print("sub detect Tact : {}".format(time.time() - st))
 
         # Add Results
         main_detections = np.asanyarray(main_detections, dtype=object)
@@ -139,9 +131,11 @@ class YoloModel:
             self.detections = sub_detections
         elif sub_detections.shape[0] == 0:
             self.detections = main_detections
-        else :
+        else:
             self.detections = np.stack((main_detections, sub_detections), axis=0)
+        st = time.time()
         result_image = self.draw_boxes(img.copy(), self.detections)
+        print("vis time : {}".format(time.time() - st))
         cv2.imwrite("D:/yolotest.tif", result_image)
 
         return result_image
