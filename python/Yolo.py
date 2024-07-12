@@ -140,20 +140,4 @@ class YoloModel:
 
         return result_image
 
-    def pyshine_image_queue(self, client_socket):
-        q = queue.Queue(maxsize=10)
 
-        def get_image():
-            while True:
-                try:
-                    image_bytes = client_socket.recv()
-                    width = 3072
-                    height = 2048
-                    image = np.frombuffer(image_bytes, dtype=np.uint16).reshape((height, width))
-                    q.put(image)
-                except Exception as e:
-                    print(f"Error receiving image: {e}")
-
-        thread = threading.Thread(target=get_image)
-        thread.start()
-        return q

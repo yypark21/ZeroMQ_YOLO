@@ -3,10 +3,10 @@ import py_sender
 
 receiver = py_receiver.Receiver()
 sender = py_sender.Sender()
-main_model_path = './model/inspection.onnx'
-sub_model_path = './model/inspection_sub.onnx'
+main_model_path = '../model/inspection.onnx'
+sub_model_path = '../model/inspection_sub.onnx'
 
-if __name__ == '__main__':
+def main():
     receiver.recv_init(main_model_path, sub_model_path)
     receiver.process()
     if receiver.detect_img is not None:
@@ -14,3 +14,7 @@ if __name__ == '__main__':
         sender.process()
     else:
         receiver.process()
+
+
+if __name__ == '__main__':
+    main()

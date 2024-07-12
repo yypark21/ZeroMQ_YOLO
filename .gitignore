@@ -6,3 +6,4 @@ cpp/x64/
 cpp/ZeroMQ_Version/x64/
 cpp/ZeroMQ_Version/Debug/
 cpp/ZeroMQ_Version/*.dll
+cpp/ZeroMQ_Version/*.vcxproj
