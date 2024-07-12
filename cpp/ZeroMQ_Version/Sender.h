@@ -16,5 +16,8 @@ namespace ZeroMQ
 	private:
 		const char* m_pc_ip_ = nullptr;
 		std::string m_image_address_;
+		cv::Mat m_image_;
+		void* m_context_;
+		void* m_publisher_;
 	};
 }
