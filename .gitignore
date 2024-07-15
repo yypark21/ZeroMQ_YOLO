@@ -1,5 +1,6 @@
 python/__pycache__/
 .idea/
+.vscode/
 cpp/.vs/
 cpp/Debug/
 cpp/x64/

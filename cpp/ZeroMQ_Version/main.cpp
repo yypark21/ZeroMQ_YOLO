@@ -5,10 +5,12 @@
 int main()
 {	
 	ZeroMQ::Sender sender;
+
 	sender.SetPCIP("tcp://*:5555");
 	sender.SetImageAddress("../../image/F 1_1.tif");
 
 	int count = 0;
+
 	
 	while (1) {
 		// Reading the image through opencv package
@@ -16,8 +18,9 @@ int main()
 		sender.SendImage();
 		count += 1;
 	}
+	
 
-	/*
+	
 	ZeroMQ::Receiver receiver;
 
 	while (1) {
@@ -26,7 +29,6 @@ int main()
 		receiver.ReceiveImage();
 		//std::count += 1;
 	}
-	*/
-
+	
 	return 0;
 }
