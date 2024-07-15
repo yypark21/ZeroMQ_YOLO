@@ -1,13 +1,13 @@
-import py_receiver
-import py_sender
+from python.Process import py_sender, py_receiver
+from python.Utils import param
 
-receiver = py_receiver.Receiver()
-sender = py_sender.Sender()
-main_model_path = '../model/inspection.onnx'
-sub_model_path = '../model/inspection_sub.onnx'
+
 
 def main():
-    receiver.recv_init(main_model_path, sub_model_path)
+    receiver = py_receiver.Receiver()
+    sender = py_sender.Sender()
+    parameter = param.Param()
+    receiver.recv_init(parameter)
     receiver.process()
     if receiver.detect_img is not None:
         sender.send_init(receiver.detect_img)
