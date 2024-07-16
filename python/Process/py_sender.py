@@ -12,7 +12,7 @@ class Sender(SenderInterface):
         self.logger = logger
         self.context = zmq.Context()
         self.send_socket = self.context.socket(zmq.PUSH)
-        self.send_socket.connect("tcp://localhost:5555")
+        self.send_socket.connect('tcp://localhost:5555')
         self.sender_queue = sender_queue
         self.thread = None
 
@@ -28,7 +28,7 @@ class Sender(SenderInterface):
             while True:
                 image = self.sender_queue.get()
                 if image is None:
-                    break
+                    continue
                 self.send_image(image)
         except Exception as e:
             self.logger.exception("An error occurred in the Sender process.")

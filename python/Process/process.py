@@ -1,5 +1,6 @@
 from python.Utils.model_format import ModelLoader
 
+
 class Processor:
     def __init__(self, param, logger):
         self.param = param
