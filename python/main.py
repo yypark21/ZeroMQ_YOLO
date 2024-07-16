@@ -1,20 +1,17 @@
-from python.Process import py_sender, py_receiver
-from python.Utils import param
-
+from Process.pipeline import Pipeline
+from python.Utils.logger import Logger
 
 
 def main():
-    receiver = py_receiver.Receiver()
-    sender = py_sender.Sender()
-    parameter = param.Param()
-    receiver.recv_init(parameter)
-    receiver.process()
-    if receiver.detect_img is not None:
-        sender.send_init(receiver.detect_img)
-        sender.process()
-    else:
-        receiver.process()
+    logger_instance = Logger('main', 'pipeline.log', when='midnight', interval=1, backup_count=7)
+    main_logger = logger_instance.get_logger()
 
+    try:
+        pipeline = Pipeline(main_logger)
+        pipeline.run()
+    except Exception as e:
+        main_logger.exception("An error occurred during the pipeline execution.")
+        raise
 
 if __name__ == '__main__':
     main()

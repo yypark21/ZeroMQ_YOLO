@@ -1,0 +1,7 @@
+apiVersion: python-zmq-yolo/v1
+kind: Deployment
+model_type: 'onnx'
+main_model_path: '../weights/inspection.onnx'
+sub_model_path: '../weights/inspection_sub.onnx'
+image_width: 3072
+image_height: 2048

@@ -18,7 +18,6 @@ class YoloModel:
         self.input_name = ''
         self.output_name = []
         self.detections = []
-
     def init_model(self):
         self.main_session, self.sub_session = self.model.main_session, self.model.sub_session
         # Init Main Session(Model)

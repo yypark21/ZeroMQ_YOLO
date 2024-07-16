@@ -1,11 +1,10 @@
-from python.Utils import model_format
-
+from python.Utils.model_format import ModelLoader
 
 class Processor:
-    def __init__(self, param):
+    def __init__(self, param, logger):
         self.param = param
-        self.loader = model_format.ModelLoader(self.param.main_model_path, self.param.sub_model_path,
-                                               self.param.model_type)
+        self.logger = logger
+        self.loader = ModelLoader(self.param.main_model_path, self.param.sub_model_path, self.param.model_type)
         self.image = []
         self.processing_model = None
 
@@ -13,24 +12,24 @@ class Processor:
         self.loader.load_model()
 
         def select_model(model, loader):
-            match model:
-                case 'pt':
-                    from python.model import YoloPytorch
-                    self.processing_model = YoloPytorch.YoloModel(loader)
-
-                case 'onnx':
-                    from python.model import YoloOnnx
-                    self.processing_model = YoloOnnx.YoloModel(loader)
-                    self.processing_model.init_model()
-                case 'torch':
-                    from python.model import YoloTensorrt
-                case _:
-                    raise "Unknown Model Input"
+            if model == 'pt':
+                from python.model.YoloPytorch import YoloModel
+                self.processing_model = YoloModel(loader)
+            elif model == 'onnx':
+                from python.model.YoloOnnx import YoloModel
+                self.processing_model = YoloModel(loader)
+                self.processing_model.init_model()
+            elif model == 'engine':
+                from python.model.YoloTensorrt import YoloModel
+                self.processing_model = YoloModel(loader)
+            else:
+                raise ValueError("Unknown Model Input")
 
         select_model(self.param.model_type, self.loader)
+        self.logger.info(f"Model {self.param.model_type} selected and initialized.")
 
     def run(self, image):
         self.image = image
         detect_image = self.processing_model.multi_detection(image)
-
+        self.logger.info("Image processed with the model.")
         return detect_image
