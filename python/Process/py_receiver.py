@@ -1,63 +1,55 @@
 import zmq
-import time
-import queue, threading
 import numpy as np
-from python.Process import process
+import base64
+from multiprocessing import Queue
+from python.Utils.interfaces import ReceiverInterface
+from python.Process.process import Processor
+from threading import Thread
 
 
-class Receiver:
-    def __init__(self):
-        self.context = None
-        self.recv_socket = None
-        self.ip = "tcp://localhost:5555"
-        self.model_type = ''
-        self.q = None
-        self.detect_img = []
-        self.width = 0
-        self.height = 0
-        self.select_process = None
-
-    def recv_init(self, param):
+class Receiver(ReceiverInterface):
+    def __init__(self, logger, sender_queue, param):
+        self.logger = logger
         self.context = zmq.Context()
         self.recv_socket = self.context.socket(zmq.PULL)
-        self.recv_socket.connect(self.ip)
-        self.select_process = process.Processor(param)
-        self.select_process.selected_init()
+        self.recv_socket.connect("tcp://localhost:5555")
+        self.sender_queue = sender_queue
+        self.processor = None
+        self.image_width = param.image_width
+        self.image_height = param.image_height
+        self.thread = None
 
-    def pyshine_image_queue(self, client_socket):
-        q = queue.Queue(maxsize=10)
+    def recv_image(self):
+        image_bytes = self.recv_socket.recv()
+        image_array = np.frombuffer(image_bytes, dtype=np.uint16).reshape((self.image_height, self.image_width))
 
-        def get_image():
+        self.logger.info(f"Image received with shape: {image_array.shape}")
+        return image_array
+
+    def process_image(self, image):
+        detect_img = self.processor.run(image)
+        return detect_img
+
+    def recv_init(self, param):
+        self.processor = Processor(param, self.logger)
+        self.processor.selected_init()
+        self.logger.info("Receiver initialized with parameters.")
+
+    def run(self):
+        self.logger.info("Receiver process started.")
+        try:
             while True:
-                try:
-                    if self.recv_socket.poll(1000, zmq.POLLIN):
-                        image_bytes = self.recv_socket.recv(zmq.NOBLOCK)
-                        width = 3072
-                        height = 2048
-                        image = np.frombuffer(image_bytes, dtype=np.uint16).reshape((height, width))
-                        q.put(image)
-                    else:
-                        raise 'error: message timeout'
+                image = self.recv_image()
+                if image is not None:
+                    processed_image = self.process_image(image)
+                    self.sender_queue.put(processed_image)
+        except Exception as e:
+            self.logger.exception("An error occurred in the Receiver process.")
+        finally:
+            self.logger.info("Receiver process stopped.")
+            self.context.term()
 
-                except Exception as e:
-                    print(f"Error receiving image: {e}")
-
-        thread = threading.Thread(target=get_image)
-        thread.start()
-        if thread.is_alive() is False:
-            raise "Unknown Thread End Error"
-
-        return q
-
-    def process(self):
-        if self.q is None:
-            print("Start Process")
-            self.q = self.pyshine_image_queue(self.recv_socket)
-            img0 = []
-            img0 = self.q.get()
-            print("Load Image Success")
-            start_time = time.time()
-            self.detect_img = self.select_process.run(img0)
-            print("Tact : {}".format(time.time() - start_time))
-            self.height = self.detect_img.shape[0]
-            self.width = self.detect_img.shape[1]
+    def start(self):
+        self.thread = Thread(target=self.run)
+        self.thread.daemon = True
+        self.thread.start()

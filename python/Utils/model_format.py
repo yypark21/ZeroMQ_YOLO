@@ -55,7 +55,8 @@ class ModelLoader:
             raise ValueError("Unsupported model type. Choose from 'pt', 'onnx', or 'engine'.")
 
     def load_pt_model(self):
-        import sys
+        # import sys
+        # sys.path.append('C:/Users/dkkim/Documents/GitHub/ZeroMQ_YOLO/weights/')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.main_model = torch.load(self.main_model_path,map_location=self.device)
         self.sub_model = torch.load(self.sub_model_path,map_location=self.device)
