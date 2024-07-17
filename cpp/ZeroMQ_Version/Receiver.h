@@ -15,6 +15,7 @@ namespace ZeroMQ
 		const std::string GetImageAddress();
 	private:
 		const char* m_pc_ip_ = nullptr;
-		std::string m_image_address_;
+		zmq::socket_t m_socket_;
+		zmq::context_t m_context_;
 	};
 }
