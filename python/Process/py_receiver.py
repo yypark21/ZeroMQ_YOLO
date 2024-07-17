@@ -2,8 +2,8 @@ import zmq
 import numpy as np
 import base64
 from multiprocessing import Queue
-from python.Utils.interfaces import ReceiverInterface
-from python.Process.process import Processor
+from Utils.interfaces import ReceiverInterface
+from Process.process import Processor
 from threading import Thread
 
 

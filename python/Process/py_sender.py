@@ -2,7 +2,7 @@ import zmq
 import base64
 import cv2
 from multiprocessing import Queue
-from python.Utils.interfaces import SenderInterface
+from Utils.interfaces import SenderInterface
 import numpy as np
 from threading import Thread
 

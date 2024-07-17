@@ -1,7 +1,7 @@
-from python.Process.py_sender import Sender
-from python.Process.py_receiver import Receiver
-from python.Utils.param import Param
-from python.Utils.interfaces import SenderInterface, ReceiverInterface
+from Process.py_sender import Sender
+from Process.py_receiver import Receiver
+from Utils.param import Param
+from Utils.interfaces import SenderInterface, ReceiverInterface
 import multiprocessing
 
 

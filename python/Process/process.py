@@ -1,4 +1,4 @@
-from python.Utils.model_format import ModelLoader
+from Utils.model_format import ModelLoader
 
 
 class Processor:
@@ -14,14 +14,14 @@ class Processor:
 
         def select_model(model, loader):
             if model == 'pt':
-                from python.model.YoloPytorch import YoloModel
+                from model.YoloPytorch import YoloModel
                 self.processing_model = YoloModel(loader)
             elif model == 'onnx':
-                from python.model.YoloOnnx import YoloModel
+                from model.YoloOnnx import YoloModel
                 self.processing_model = YoloModel(loader)
                 self.processing_model.init_model()
             elif model == 'engine':
-                from python.model.YoloTensorrt import YoloModel
+                from model.YoloTensorrt import YoloModel
                 self.processing_model = YoloModel(loader)
             else:
                 raise ValueError("Unknown Model Input")

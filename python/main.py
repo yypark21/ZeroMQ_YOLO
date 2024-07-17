@@ -1,5 +1,5 @@
 from Process.pipeline import Pipeline
-from python.Utils.logger import Logger
+from Utils.logger import Logger
 
 
 def main():
@@ -16,5 +16,5 @@ def main():
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': 
     main()
