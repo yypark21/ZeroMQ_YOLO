@@ -11,7 +11,7 @@ namespace ZeroMQ
 		void SendImage();
 		void SetPCIP(const char* pc_ip);
 		const char* GetPCIP();
-		void SetImageAddress(std::string str_address);
+		void SetImageAddress(const std::string& str_address);
 		void SetImage(const cv::Mat& image);
 		cv::Mat& GetImage();
 		const std::string GetImageAddress();

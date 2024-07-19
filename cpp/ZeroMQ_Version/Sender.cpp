@@ -29,7 +29,7 @@ const char* Sender::GetPCIP()
 	return m_pc_ip_;
 }
 
-void Sender::SetImageAddress(std::string str_address)
+void Sender::SetImageAddress(const std::string& str_address)
 {
 	m_image_address_ = str_address;
 	m_image_ = cv::imread(m_image_address_, -1);
