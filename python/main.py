@@ -2,42 +2,18 @@ from Process.pipeline import Pipeline
 from Utils.logger import Logger
 
 
-import zmq
-import numpy as np
+def main():
+    # 필요한 경우 사용자 정의 모듈 경로 추가
+    logger_instance = Logger('main', 'pipeline.log', when='midnight', interval=1, backup_count=7)
+    main_logger = logger_instance.get_logger()
 
-import cv2
-import base64
-
-import socket
-
-if __name__ == '__main__':    
-    
-    ip = "tcp://*:5555"
-    context = zmq.Context()
-    send_socket = context.socket(zmq.PUSH)
-    send_socket.bind(ip)
-    
-    #sender = imagezmq.ImageSender(connect_to=ip)
-
-    #sender_name = socket.gethostname() # send your hostname with each image
-
-    #image = open("../image/F 1_1.jpg", 'rb')
-    
-    #while 1 :
-    #    sender.send_image(sender_name, image)
+    try:
+        pipeline = Pipeline(main_logger)
+        pipeline.run()
+    except Exception as e:
+        main_logger.exception("An error occurred during the pipeline execution.")
+        raise
 
 
-
-    # while 1 :
-    #     f = open("../image/F 1_1.jpg", 'rb')
-    #     bytes = bytearray(f.read())
-    #     strng = base64.b64encode(bytes)
-    #     send_socket.send(strng)
-    #     f.close()
-
-
-
-    while 1 :
-        
-        image = cv2.imread("../image/F 1_1.tif", -1)
-        send_socket.send(image.data)
+if __name__ == '__main__':
+    main()
