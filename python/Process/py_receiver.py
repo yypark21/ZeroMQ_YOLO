@@ -20,7 +20,8 @@ class Receiver(ReceiverInterface):
         self.thread = None
 
     def recv_image(self):
-        image_bytes = self.recv_socket.recv()
+        w, h, image_bytes = self.recv_socket.recv_multipart(zmq.NOBLOCK)
+        #image_bytes = self.recv_socket.recv()
         image_array = np.frombuffer(image_bytes, dtype=np.uint16).reshape((self.image_height, self.image_width))
 
         self.logger.info(f"Image received with shape: {image_array.shape}")
