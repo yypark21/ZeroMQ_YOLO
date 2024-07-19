@@ -20,7 +20,7 @@ void Sender::SendImage()
 	//const char* reply_message = "Hi from ZeroMQ C++ Server";
 	zmq_send(m_publisher_, &m_image_.rows, sizeof(int), ZMQ_SNDMORE);
 	zmq_send(m_publisher_, &m_image_.cols, sizeof(int), ZMQ_SNDMORE);
-	zmq_send(m_publisher_, m_image_.data, (m_image_.rows * m_image_.cols * sizeof(UINT16)), ZMQ_NOBLOCK);
+	zmq_send(m_publisher_, m_image_.data, ((m_image_.rows) * (m_image_.cols) * sizeof(UINT16)), ZMQ_NOBLOCK);
 }
 
 void Sender::SetPCIP(const char* pc_ip)
